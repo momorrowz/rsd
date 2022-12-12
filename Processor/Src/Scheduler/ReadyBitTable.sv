@@ -69,9 +69,14 @@ module ReadyBitTable #(
         for (int i = 0; i < WAKEUP_WIDTH; i++) begin
             readyWA[i] = wakeupDstRegNum[i];
             readyWV[i] = TRUE;
-            readyWE[i] = !stall && (wakeup[i] && wakeupDstValid[i]);
             //if(wakeup[i] && wakeupDstValid[i]) begin
             //    ready[ wakeupDstRegNum[i] ] <= TRUE;
+        end
+        for (int i = 0; i < INT_ISSUE_WIDTH; i++) begin
+            readyWE[i] = !stall && wakeup[i] && wakeupDstValid[i];
+        end
+        for (int i = INT_ISSUE_WIDTH; i < WAKEUP_WIDTH; i++) begin
+            readyWE[i] = wakeup[i] && wakeupDstValid[i];
         end
 
         for (int i = 0; i < DISPATCH_WIDTH; i++) begin

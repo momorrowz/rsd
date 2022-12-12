@@ -48,11 +48,18 @@ module ProducerMatrix (
 
         // Wakeup
         wakeupVector = '0;
-        for (int w = 0; w < WAKEUP_WIDTH + STORE_ISSUE_WIDTH; w++) begin
-            // A producer column can be cleared without regarding to validness of wakeup.
-            //if (wakeup[w]) begin
-            //end
-            wakeupVector |= wakeupDstVector[w];
+        if( !stall) begin
+            for (int w = 0; w < WAKEUP_WIDTH + STORE_ISSUE_WIDTH; w++) begin
+                // A producer column can be cleared without regarding to validness of wakeup.
+                //if (wakeup[w]) begin
+                //end
+                wakeupVector |= wakeupDstVector[w];
+            end
+        end
+        else begin
+            for (int w = INT_ISSUE_WIDTH; w < WAKEUP_WIDTH + STORE_ISSUE_WIDTH; w++) begin
+                wakeupVector |= wakeupDstVector[w];
+            end
         end
 
         for (int i = 0; i < ISSUE_QUEUE_ENTRY_NUM; i++) begin
@@ -64,11 +71,6 @@ module ProducerMatrix (
         // It is ready when its all source bits are zero.
         for (int i = 0; i < ISSUE_QUEUE_ENTRY_NUM; i++) begin
             opReady[i] = !(|(nextMatrix[i]));
-        end
-
-        if (stall) begin
-            // Does not update.
-            nextMatrix = matrix;
         end
 
         // Dispatch

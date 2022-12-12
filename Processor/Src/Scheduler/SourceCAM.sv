@@ -86,7 +86,11 @@ module SourceCAM #(
             for( int j = 0; j < SRC_OP_NUM; j++ ) begin
                 match[i][j] = FALSE;
                 // Test all broadcasted tags.
-                for( int k = 0; k < WAKEUP_WIDTH; k++ ) begin
+                for( int k = 0; k < INT_ISSUE_WIDTH; k++ ) begin
+                    if ( !stall &&  wakeup[k] && wakeupDstValid[k] )
+                        match[i][j] = match[i][j] || ( wakeupDstRegNum[k] == srcRegNum[i][j] );
+                end
+                for( int k = INT_ISSUE_WIDTH; k < WAKEUP_WIDTH; k++) begin
                     if ( wakeup[k] && wakeupDstValid[k] )
                         match[i][j] = match[i][j] || ( wakeupDstRegNum[k] == srcRegNum[i][j] );
                 end
@@ -104,12 +108,7 @@ module SourceCAM #(
         // Set nextSrcReady
         for( int i = 0; i < ISSUE_QUEUE_ENTRY_NUM; i++ ) begin
             for( int j = 0; j < SRC_OP_NUM; j++ ) begin
-                if (stall) begin
-                    nextSrcReady[i][j] = srcReady[i][j];
-                end
-                else begin
-                    nextSrcReady[i][j] = srcReady[i][j] || match[i][j];
-                end
+                nextSrcReady[i][j] = srcReady[i][j] || match[i][j];
             end
         end
         for( int i = 0; i < DISPATCH_WIDTH; i++ ) begin

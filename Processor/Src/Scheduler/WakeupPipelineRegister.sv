@@ -132,6 +132,22 @@ module WakeupPipelineRegister(
                 end
                 memPipeReg[i][ ISSUE_QUEUE_MEM_LATENCY-1 ] <= nextMemPipeReg[i];
             end
+        end else begin
+`ifndef RSD_MARCH_UNIFIED_MULDIV_MEM_PIPE
+            for( int i = 0; i < COMPLEX_ISSUE_WIDTH; i++ ) begin
+                for( int j = 1; j < ISSUE_QUEUE_COMPLEX_LATENCY-1; j++ ) begin
+                    complexPipeReg[i][j-1] <= complexPipeReg[i][j];
+                end
+                complexPipeReg[i][ ISSUE_QUEUE_COMPLEX_LATENCY-2 ].valid <= FALSE;
+            end
+`endif
+
+            for( int i = 0; i < MEM_ISSUE_WIDTH; i++ ) begin
+                for( int j = 1; j < ISSUE_QUEUE_MEM_LATENCY-1; j++ ) begin
+                    memPipeReg[i][j-1] <= memPipeReg[i][j];
+                end
+                memPipeReg[i][ ISSUE_QUEUE_MEM_LATENCY-2 ].valid <= FALSE;
+            end
         end
     end
 
@@ -259,12 +275,12 @@ module WakeupPipelineRegister(
         end
 `ifndef RSD_MARCH_UNIFIED_MULDIV_MEM_PIPE
         for ( int i = 0; i < COMPLEX_ISSUE_WIDTH; i++) begin
-            port.releaseEntry[(i+INT_ISSUE_WIDTH)] = complexPipeReg[i][0].valid && !port.stall;
+            port.releaseEntry[(i+INT_ISSUE_WIDTH)] = complexPipeReg[i][0].valid;
             port.releasePtr[(i+INT_ISSUE_WIDTH)] = complexPipeReg[i][0].ptr;
         end
 `endif
         for (int i = 0; i < MEM_ISSUE_WIDTH; i++) begin
-            port.releaseEntry[(i+INT_ISSUE_WIDTH+COMPLEX_ISSUE_WIDTH)] = memPipeReg[i][0].valid && !port.stall;
+            port.releaseEntry[(i+INT_ISSUE_WIDTH+COMPLEX_ISSUE_WIDTH)] = memPipeReg[i][0].valid;
             port.releasePtr[(i+INT_ISSUE_WIDTH+COMPLEX_ISSUE_WIDTH)] = memPipeReg[i][0].ptr;
         end
     end
